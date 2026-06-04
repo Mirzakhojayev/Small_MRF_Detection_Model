@@ -1,6 +1,15 @@
 # Small MRF Detection Model
 
-A small PyTorch object-detection project for damage / MRF detection using a multi-receptive-field backbone, FPN-style neck, and decoupled classification/regression heads.
+A compact PyTorch object-detection project for damage / MRF detection built around a multi-receptive-field backbone, FPN-style fusion neck, and decoupled classification/regression heads.
+
+This repository is designed for experiments on image-level damage detection, with configurable training, augmentation, evaluation, and checkpointing.
+
+## Highlights
+
+- Lightweight, practical training pipeline in PyTorch
+- Config-driven model and training setup via `config.yaml`
+- Built-in evaluation with confidence threshold and NMS options
+- Visual prediction examples under `eval_images/`
 
 ## Project structure
 
@@ -45,6 +54,14 @@ class cx cy w h
 
 where values are normalized to image size.
 
+## Example predictions
+
+The repository includes evaluation visualizations in `eval_images/` to show ground truth vs. predicted detections.
+
+![Prediction example](eval_images/00_gt_pred.jpg)
+![Prediction example](eval_images/04_gt_pred.jpg)
+![Prediction example](eval_images/05_gt_pred.jpg)
+
 ## Training
 
 From the project root:
@@ -72,6 +89,20 @@ You can also override the confidence threshold with:
 ```bash
 python eval.py --checkpoint checkpoints/checkpoint_best.pth --dataset_root ../coco_dataset --split val --conf 0.15
 ```
+
+## Additional visual samples
+
+More examples are available in `eval_images/`:
+
+- `00_gt_pred.jpg`
+- `04_gt_pred.jpg`
+- `05_gt_pred.jpg`
+- `10_gt_pred.jpg`
+- `11_gt_pred.jpg`
+- `17_gt_pred.jpg`
+- `21_gt_pred.jpg`
+- `24_gt_pred.jpg`
+- `29_gt_pred.jpg`
 
 ## Notes
 
