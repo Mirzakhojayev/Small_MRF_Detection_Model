@@ -58,9 +58,11 @@ where values are normalized to image size.
 
 The repository includes evaluation visualizations in `eval_images/` to show ground truth vs. predicted detections.
 
-![Prediction example](eval_images/00_gt_pred.jpg)
-![Prediction example](eval_images/04_gt_pred.jpg)
-![Prediction example](eval_images/05_gt_pred.jpg)
+<p align="center">
+  <img src="./eval_images/00_gt_pred.jpg" alt="Prediction example 1" width="320" />
+  <img src="./eval_images/04_gt_pred.jpg" alt="Prediction example 2" width="320" />
+  <img src="./eval_images/05_gt_pred.jpg" alt="Prediction example 3" width="320" />
+</p>
 
 ## Training
 
