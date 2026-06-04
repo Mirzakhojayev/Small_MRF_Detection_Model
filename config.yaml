@@ -1,0 +1,74 @@
+model:
+  num_classes: 1
+  in_channels: 3
+  stem_channels: 32
+  stages:
+    - blocks: 2
+      channels: 64
+      dilation_seq: [1, 2, 4]
+    - blocks: 2
+      channels: 128
+      dilation_seq: [1, 2, 4]
+    - blocks: 3
+      channels: 256
+      dilation_seq: [1, 2, 4]
+    - blocks: 2
+      channels: 384
+      dilation_seq: [1, 2, 6]
+    - blocks: 1
+      channels: 384
+      dilation_seq: [1, 2, 6]
+  neck_channels: 128
+  detection_scales: [2, 3, 4, 5]
+
+training:
+  img_size: 640
+  batch_size: 32
+  epochs: 150
+  warmup_epochs: 5
+  base_lr: 0.001
+  min_lr: 0.000001
+  finetune_start_epoch: 131
+  finetune_lr: 0.00001
+  weight_decay: 0.0005
+  stochastic_depth_rate: 0.15
+  dropout_rate: 0.1
+  ema_decay: 0.9995
+  seed: 42
+  early_stop_patience: 20
+
+loss:
+  lambda_cls: 1.0
+  lambda_box: 3.5
+  lambda_dfl: 0.15
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+
+assigner:
+  type: fcos_center
+  center_sampling_radius: 2.5
+
+data:
+  train_split: 0.70
+  val_split: 0.15
+  test_split: 0.15
+  split_by: car_id
+  negative_image_ratio: 0.20
+  augmentation:
+    mosaic: 1.0
+    hsv_h: 0.015
+    hsv_s: 0.7
+    hsv_v: 0.4
+    flip_lr: 0.5
+    scale: [0.5, 1.5]
+    cutout_prob: 0.3
+    cutout_patches: [3, 5]
+    cutout_size: [0.10, 0.20]
+    mixup: 0.1
+    rotation_max_deg: 10
+
+eval:
+  conf_threshold: 0.15
+  nms_iou_threshold: 0.4
+  nms_type: hard
+  metrics: [map50, map50_95, recall50]
