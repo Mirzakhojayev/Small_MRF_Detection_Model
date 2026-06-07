@@ -16,14 +16,6 @@ from tqdm import tqdm
 
 
 class FCOSAssigner(nn.Module):
-    """
-    Assigns GT boxes to FPN grid points for a single image.
-    Scale assignment by sqrt(box_area):
-      P2 [0,64) | P3 [64,128) | P4 [128,256) | P5 [256,inf)
-    A point is a candidate if inside the GT box OR within
-    center_sampling_radius * stride of the GT center.
-    Ties broken by smallest GT area.
-    """
     SIZE_RANGES = [(0, 64), (64, 128), (128, 256), (256, float('inf'))]
 
     def __init__(self, center_sampling_radius: float = 1.5, strides: list = [4, 8, 16, 32]):
@@ -95,14 +87,6 @@ class FCOSAssigner(nn.Module):
 
 
 class MRFDetLoss(nn.Module):
-    """
-    Three-component loss normalized by number of positive samples:
-    - Focal loss via torchvision.ops.sigmoid_focal_loss
-    - CIoU loss via torchvision.ops.complete_box_iou_loss
-    - Distribution Focal Loss (DFL) — no pytorch built-in, kept minimal
-    Soft cls targets use predicted IoU quality (GFL/TOOD style).
-    """
-
     def __init__(self, config: dict):
         super().__init__()
         lcfg = config['loss']
@@ -131,7 +115,6 @@ class MRFDetLoss(nn.Module):
         return torch.cat(gs), torch.cat(ss)
 
     def _dfl(self, pred_dist, gt_dist):
-        """Distribution Focal Loss — cross-entropy over two adjacent bins."""
         gt_dist = gt_dist.clamp(0.0, self.reg_max - 1 - 1e-4)
         y_l = gt_dist.floor().long()
         y_r = y_l + 1
@@ -203,8 +186,6 @@ class MRFDetLoss(nn.Module):
                 cls_tgt[b, pm, lbls] = iou_q[cnt:cnt+n_b]
                 cnt += n_b
 
-        # ---- losses ----
-        # sigmoid_focal_loss from torchvision replaces the hand-written focal method
         loss_cls = sigmoid_focal_loss(cls_p, cls_tgt,
                                       alpha=self.alpha, gamma=self.gamma, reduction='sum')
         loss_box = complete_box_iou_loss(pred_boxes, pg_box, reduction='sum')
@@ -240,7 +221,6 @@ def freeze_bn_stats(m):
 
 
 def init_weights(model: nn.Module):
-    """Kaiming init for Conv2d, constant for BN, focal-friendly bias on cls head."""
     for m in model.modules():
         if isinstance(m, nn.Conv2d):
             nn.init.kaiming_normal_(
@@ -327,9 +307,6 @@ def train(config_path: str, dataset_root: str,
     optimizer = torch.optim.AdamW(model.parameters(), lr=base_lr,
                                   weight_decay=tcfg.get('weight_decay', 5e-4))
 
-    # Phase 1: linear warmup from 1e-5 → base_lr  (warmup epochs)
-    # Phase 2: cosine decay base_lr → min_lr       (cosine epochs)
-    # Phase 3: constant finetune_lr                 (remaining epochs)
     scheduler = SequentialLR(optimizer, schedulers=[
         LinearLR(optimizer, start_factor=1e-5/base_lr,
                  end_factor=1.0, total_iters=warmup),
@@ -338,7 +315,6 @@ def train(config_path: str, dataset_root: str,
                    total_iters=total_ep-ft_start+1),
     ], milestones=[warmup, ft_start-1])
 
-    # --- Optional resume ---
     start_epoch, best_val_map = 1, 0.0
     if resume_checkpoint:
         ckpt = torch.load(resume_checkpoint, map_location=device)
@@ -354,7 +330,6 @@ def train(config_path: str, dataset_root: str,
         start_epoch = ckpt['epoch'] + 1
         best_val_map = ckpt.get('best_val_map', 0.0)
 
-    # --- Logging ---
     os.makedirs(log_dir,        exist_ok=True)
     os.makedirs(checkpoint_dir, exist_ok=True)
     log_path = os.path.join(log_dir, "training_log.csv")

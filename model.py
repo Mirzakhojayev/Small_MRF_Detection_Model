@@ -5,12 +5,6 @@ from torchvision.ops import StochasticDepth
 
 
 class MRFBlock(nn.Module):
-    """
-    Multi-Receptive Field Block.
-    Three sequential depthwise 3x3 convs (one per dilation), each BN+GELU.
-    Pointwise 1x1 conv + BN. Residual + stochastic depth.
-    """
-
     def __init__(self, in_ch: int, out_ch: int, dilation_seq: list, drop_path: float = 0.0):
         super().__init__()
         self.dw_convs = nn.ModuleList([
@@ -36,13 +30,6 @@ class MRFBlock(nn.Module):
 
 
 class MRFBackbone(nn.Module):
-    """
-    Stem (6×6 conv, stride 2) + 5 stages of MRFBlocks.
-    Stages 2–5 begin with a stride-2 downsample conv.
-    Stochastic-depth rates increase linearly across all blocks.
-    Returns {P2, P3, P4, P5}.
-    """
-
     def __init__(self, config: dict):
         super().__init__()
         m = config['model']
@@ -122,10 +109,6 @@ class MRFFPNNeck(nn.Module):
 
 
 class DecoupledHead(nn.Module):
-    """
-    Per-scale decoupled cls / reg branches.
-    Returns list of (cls_logits, reg_dist) for scales N2–N5.
-    """
 
     def __init__(self, in_ch: int = 128, num_classes: int = 1,
                  num_scales: int = 4, dropout: float = 0.1, reg_max: int = 16):
@@ -152,7 +135,6 @@ class DecoupledHead(nn.Module):
 
 
 def _make_grids(strides, H, W, device):
-    """Shared grid generator — used by both MRFDet inference and MRFDetLoss."""
     gs, ss = [], []
     for stride in strides:
         sy = torch.arange(H // stride, dtype=torch.float32, device=device)
@@ -183,7 +165,7 @@ class MRFDet(nn.Module):
 
         self.backbone = MRFBackbone(config)
         self.neck = MRFFPNNeck(
-            {f'P{i+2}': stages[i]['channels'] for i in range(1, 5)}, neck_ch
+            {f'P{i+1}': stages[i]['channels'] for i in range(1, 5)}, neck_ch
         )
         self.head = DecoupledHead(
             in_ch=neck_ch,
@@ -194,7 +176,6 @@ class MRFDet(nn.Module):
         )
 
     def _decode_boxes(self, reg_pred, grid, stride):
-        """DFL decode: softmax expectation → xyxy boxes."""
         sup = torch.arange(self.reg_max, dtype=torch.float32,
                            device=reg_pred.device)
         dist = (reg_pred.view(-1, 4, self.reg_max).softmax(-1)
