@@ -4,13 +4,6 @@ A compact PyTorch object-detection project for damage / MRF detection built arou
 
 This repository is designed for experiments on image-level damage detection, with configurable training, augmentation, evaluation, and checkpointing.
 
-## Highlights
-
-- Lightweight, practical training pipeline in PyTorch
-- Config-driven model and training setup via `config.yaml`
-- Built-in evaluation with confidence threshold and NMS options
-- Visual prediction examples under `eval_images/`
-
 ## Project structure
 
 - `config.yaml` – model, training, loss, and evaluation settings.
@@ -91,20 +84,6 @@ You can also override the confidence threshold with:
 ```bash
 python eval.py --checkpoint checkpoints/checkpoint_best.pth --dataset_root ../coco_dataset --split val --conf 0.15
 ```
-
-## Additional visual samples
-
-More examples are available in `eval_images/`:
-
-- `00_gt_pred.jpg`
-- `04_gt_pred.jpg`
-- `05_gt_pred.jpg`
-- `10_gt_pred.jpg`
-- `11_gt_pred.jpg`
-- `17_gt_pred.jpg`
-- `21_gt_pred.jpg`
-- `24_gt_pred.jpg`
-- `29_gt_pred.jpg`
 
 ## Notes
 
